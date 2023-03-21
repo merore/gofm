@@ -1,0 +1,7 @@
+missevan:
+  live: 868854559
+  token: token|token
+
+openai:
+  key: key-key
+  proxy: http://localhost:7890
