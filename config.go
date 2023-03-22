@@ -22,9 +22,12 @@ type OpenAIConfig struct {
 }
 
 func UnmarshalConfig(filename string) (Config, error) {
-	bs, _ := ioutil.ReadFile(filename)
 	c := Config{}
-	err := yaml.Unmarshal(bs, &c)
+	bs, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return c, err
+	}
+	err = yaml.Unmarshal(bs, &c)
 	return c, err
 }
 

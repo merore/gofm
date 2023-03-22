@@ -88,23 +88,23 @@ func SafeMessage(msg string) string {
 	return strings.Join(strings.Split(msg, ""), "\u200B")
 }
 
-func NewAccessToken(phone int, password string) (FMResp, error) {
+func NewToken(phone int, password string) (string, error) {
 	fmResp := FMResp{}
 	c := &http.Client{}
 	req := buildAccessTokenRequest(phone, password)
 	resp, err := c.Do(req)
 	if err != nil {
-		return fmResp, err
+		return "", err
 	}
 	if resp != nil {
 		defer resp.Body.Close()
 	}
 	bs, _ := ioutil.ReadAll(resp.Body)
 	if err := json.Unmarshal(bs, &fmResp); err != nil {
-		return fmResp, err
+		return "", err
 	}
 	if fmResp.Code != 0 || fmResp.Success != true {
-		return fmResp, errors.New(string(bs))
+		return "", errors.New(string(bs))
 	}
-	return fmResp, nil
+	return fmResp.Info.Token, nil
 }

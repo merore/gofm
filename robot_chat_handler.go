@@ -70,7 +70,7 @@ func ParseChatMessage(msg missevan.FMMessage) (nm ChatMessage) {
 }
 
 func (r *Robot) chatHandler(msg missevan.FMMessage) {
-	logger.Info(msg.User.Username, "\n", msg.Message)
+	logger.Info(msg.User.Username, " ", msg.Message)
 	nm := ParseChatMessage(msg)
 	switch nm.Type {
 	case CommonContent:
