@@ -1,27 +1,27 @@
-package openai
+package chatgpt
 
 import (
 	"container/list"
 
-	openai "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai"
 )
 
 type Content interface {
-	Add(openai.ChatCompletionMessage)
-	Messages() []openai.ChatCompletionMessage
+	Add(ChatMessage)
+	Messages() []ChatMessage
 }
 
-func NewContent(prompt openai.ChatCompletionMessage) Content {
+func NewContent(prompt ChatMessage) Content {
 	return newListContent(prompt)
 }
 
 type ListContent struct {
-	prompt   openai.ChatCompletionMessage
+	prompt   ChatMessage
 	messages *list.List
 	token    int
 }
 
-func newListContent(promot openai.ChatCompletionMessage) *ListContent {
+func newListContent(promot ChatMessage) *ListContent {
 	return &ListContent{
 		prompt:   promot,
 		messages: list.New(),
@@ -29,7 +29,7 @@ func newListContent(promot openai.ChatCompletionMessage) *ListContent {
 	}
 }
 
-func (lc *ListContent) Add(message openai.ChatCompletionMessage) {
+func (lc *ListContent) Add(message ChatMessage) {
 	lc.messages.PushBack(message)
 	lc.token += len(message.Content)
 
@@ -38,12 +38,12 @@ func (lc *ListContent) Add(message openai.ChatCompletionMessage) {
 	}
 }
 
-func (lc *ListContent) Messages() []openai.ChatCompletionMessage {
-	ms := make([]openai.ChatCompletionMessage, lc.messages.Len()+1)
+func (lc *ListContent) Messages() []ChatMessage {
+	ms := make([]ChatMessage, lc.messages.Len()+1)
 	ms[0] = lc.prompt
 	i := 1
 	for e := lc.messages.Front(); e != nil; e = e.Next() {
-		ms[i] = e.Value.(openai.ChatCompletionMessage)
+		ms[i] = e.Value.(ChatMessage)
 		i++
 	}
 	return ms

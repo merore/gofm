@@ -13,12 +13,10 @@ import (
 
 var (
 	phoneReg         = regexp.MustCompile(`^1\d{10}$`)
-	configPath       = "config.yaml"
 	InvalidParameter = errors.New("invalid parameter")
 )
 
 func init() {
-	robotCmd.Flags().StringVarP(&configPath, "config", "c", configPath, "--config=config.yaml")
 	robotCmd.AddCommand(tokenCmd)
 }
 
@@ -26,11 +24,16 @@ var robotCmd = &cobra.Command{
 	Use:   "gofm",
 	Short: "Gofm is a robot for missevan.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		config, err := gofm.UnmarshalConfig(configPath)
+		config := gofm.Config{
+			MissevanToken: MissevanToken,
+			OpenAIToken:   OpenAIToken,
+			OpenAIAPI:     OpenAIAPI,
+		}
+		live, err := strconv.Atoi(args[1])
 		if err != nil {
 			return err
 		}
-		s := gofm.NewRobot(config)
+		s := gofm.NewRobot(config, live)
 		return s.Run()
 	},
 }

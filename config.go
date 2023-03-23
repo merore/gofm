@@ -7,18 +7,9 @@ import (
 )
 
 type Config struct {
-	MissEvan MissEvanConfig `yaml:"missevan"`
-	OpenAi   OpenAIConfig   `yaml:"openai"`
-}
-
-type MissEvanConfig struct {
-	Live  int    `yaml:"live"`
-	Token string `yaml:"token"`
-}
-
-type OpenAIConfig struct {
-	Key   string `yaml:"key"`
-	Proxy string `yaml:"proxy"`
+	MissevanToken string
+	OpenAIToken   string
+	OpenAIAPI     string
 }
 
 func UnmarshalConfig(filename string) (Config, error) {
