@@ -10,15 +10,13 @@ import (
 
 type Robot struct {
 	name     string // The username of missevan account used by robot.
-	live     int
 	openai   *openai.Client
 	missevan *missevan.Client
 	config   Config
 }
 
-func NewRobot(config Config, live int) *Robot {
+func NewRobot(config Config) *Robot {
 	s := &Robot{
-		live:     live,
 		config:   config,
 		openai:   openai.NewClient(config.OpenAIToken, config.OpenAIAPI),
 		missevan: missevan.NewClient(config.MissevanToken),
@@ -33,8 +31,8 @@ func (r *Robot) Run() error {
 		return err
 	}
 	r.name = user.Username
-	msgs := r.missevan.Connect(r.live)
-	logger.Info(fmt.Sprintf("%s connect to %d successfully.", r.name, r.live))
+	msgs := r.missevan.Connect(r.config.MissevanLive)
+	logger.Info(fmt.Sprintf("%s connect to %d successfully.", r.name, r.config.MissevanLive))
 	for msg := range msgs {
 		r.dispatcher(msg)
 	}
@@ -52,5 +50,5 @@ func (r *Robot) dispatcher(msg missevan.FMMessage) {
 }
 
 func (r *Robot) Send(msg string) error {
-	return r.missevan.Send(r.live, msg)
+	return r.missevan.Send(r.config.MissevanLive, msg)
 }

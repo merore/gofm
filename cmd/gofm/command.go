@@ -24,17 +24,28 @@ var robotCmd = &cobra.Command{
 	Use:   "gofm",
 	Short: "Gofm is a robot for missevan.",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if MissevanToken == "" || OpenAIToken == "" {
+			return errors.New(fmt.Sprintf("Missing environments %s %s.", EnvMissevanToken, EnvOpenAIToken))
+		}
+		live, err := strconv.Atoi(args[0])
+		if err != nil {
+			return InvalidParameter
+		}
 		config := gofm.Config{
 			MissevanToken: MissevanToken,
+			MissevanLive:  live,
 			OpenAIToken:   OpenAIToken,
 			OpenAIAPI:     OpenAIAPI,
 		}
-		live, err := strconv.Atoi(args[1])
-		if err != nil {
-			return err
-		}
-		s := gofm.NewRobot(config, live)
+		s := gofm.NewRobot(config)
 		return s.Run()
+	},
+	// Without this field, gofm will treat arguments as commands.
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return InvalidParameter
+		}
+		return nil
 	},
 }
 

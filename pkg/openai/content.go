@@ -1,9 +1,7 @@
-package chatgpt
+package openai
 
 import (
 	"container/list"
-
-	"github.com/sashabaranov/go-openai"
 )
 
 type Content interface {
@@ -59,5 +57,5 @@ func (lc *ListContent) overflow() bool {
 func (lc *ListContent) remove() {
 	e := lc.messages.Front()
 	lc.messages.Remove(e)
-	lc.token -= len(e.Value.(openai.ChatCompletionMessage).Content)
+	lc.token -= len(e.Value.(ChatMessage).Content)
 }

@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	MissevanToken string
+	MissevanLive  int
 	OpenAIToken   string
 	OpenAIAPI     string
 }
