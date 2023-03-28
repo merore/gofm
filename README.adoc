@@ -1,0 +1,25 @@
+= GOFM
+:source-highlighter: highlightjs
+
+Gofm is a robot for missevan thats supports chat powered by ChatGPT.
+
+== Features
+* [*] greet
+* [*] chat
+
+== Install
+=== Install from Source
+[, bash]
+----
+make
+----
+
+== Usage
+[,bash]
+----
+gofm --live=89223742 --missevan-token=$(MISSEVAN_TOKEN) --openai-token=$(OPENAI_TOKEN)
+----
+
+
+== Contributing
+PRs accepted.
