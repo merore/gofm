@@ -188,6 +188,7 @@ type (
 			ImageURL string  `json:"image_url"`
 			Opacity  float64 `json:"opacity"`
 		} `json:"background"` // 背景图
+		CreatorUsername string `json:"creator_username"`
 	}
 
 	FMMembers struct {

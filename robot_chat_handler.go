@@ -7,7 +7,6 @@ import (
 
 	"github.com/merore/gofm/pkg/logger"
 	"github.com/merore/gofm/pkg/missevan"
-	"github.com/merore/gofm/pkg/openai"
 )
 
 /*
@@ -116,5 +115,5 @@ func (s *Robot) commonContentHandler(nm ChatMessage) {
 
 func (r *Robot) resetCommand(nm ChatMessage) {
 	logger.Debug("reset", nm)
-	r.openai.Reset(openai.DefaultPrompt)
+	r.openai.Reset()
 }

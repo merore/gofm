@@ -8,35 +8,68 @@ import (
 	"github.com/merore/gofm/pkg/openai"
 )
 
+type Config struct {
+	Live          int
+	MissevanToken string
+	OpenAIToken   string
+}
+
 type Robot struct {
 	name     string // The username of missevan account used by robot.
+	liveName string // The username of live owner.
 	openai   *openai.Client
 	missevan *missevan.Client
 	config   Config
 }
 
-func NewRobot(config Config) *Robot {
-	s := &Robot{
-		config:   config,
-		openai:   openai.NewClient(config.OpenAIToken, config.OpenAIAPI),
-		missevan: missevan.NewClient(config.MissevanToken),
+func NewRobot(config Config) (*Robot, error) {
+	mc, err := missevan.NewClient(config.MissevanToken)
+	if err != nil {
+		return nil, err
 	}
-	s.openai.Reset(openai.DefaultPrompt)
-	return s
+	oc, err := openai.NewClient(config.OpenAIToken)
+	if err != nil {
+		return nil, err
+	}
+	r := &Robot{
+		config:   config,
+		openai:   oc,
+		missevan: mc,
+	}
+	if err := r.init(); err != nil {
+		return nil, err
+	}
+	return r, nil
 }
 
-func (r *Robot) Run() error {
+// init get missevan info
+func (r *Robot) init() error {
+	fmt.Println(r.config)
 	user, err := r.missevan.GetUserInfo()
 	if err != nil {
 		return err
 	}
 	r.name = user.Username
-	msgs := r.missevan.Connect(r.config.MissevanLive)
-	logger.Info(fmt.Sprintf("%s connect to %d successfully.", r.name, r.config.MissevanLive))
-	for msg := range msgs {
+
+	live, err := r.missevan.GetLiveInfo(r.config.Live)
+	if err != nil {
+		return err
+	}
+	r.liveName = live.CreatorUsername
+	return nil
+
+}
+
+func (r *Robot) Run() error {
+	conn, err := r.missevan.Connect(r.config.Live)
+	if err != nil {
+		return err
+	}
+	logger.Info(fmt.Sprintf("%s connect to %d successfully.", r.name, r.config.Live))
+	for {
+		msg, _ := conn.Read()
 		r.dispatcher(msg)
 	}
-	return nil
 }
 
 func (r *Robot) dispatcher(msg missevan.FMMessage) {
@@ -50,5 +83,5 @@ func (r *Robot) dispatcher(msg missevan.FMMessage) {
 }
 
 func (r *Robot) Send(msg string) error {
-	return r.missevan.Send(r.config.MissevanLive, msg)
+	return r.missevan.Send(r.config.Live, msg)
 }

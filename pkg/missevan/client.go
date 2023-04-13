@@ -29,6 +29,7 @@ const (
 )
 const (
 	UserInfoUrl    = "https://fm.missevan.com/api/user/info"
+	LiveInfoUrl    = "https://fm.missevan.com/api/v2/live"
 	LoginUrl       = "https://app.missevan.com/member/login"
 	MessageSendUrl = "https://fm.missevan.com/api/chatroom/message/send"
 	WebsocketUrl   = "wss://im.missevan.com/ws"
@@ -36,22 +37,19 @@ const (
 )
 
 const (
-	MessagesSize = 100
-	CookieSize   = 3
+	FMMessagesSize = 100
+	CookieSize     = 3
 )
 
 type Client struct {
 	c       *http.Client
 	cookies []*http.Cookie
-	conn    *websocket.Conn
-	cms     chan FMMessage
 }
 
-func NewClient(token string) *Client {
+func NewClient(token string) (*Client, error) {
 	c := &Client{
 		c:       &http.Client{},
 		cookies: make([]*http.Cookie, CookieSize),
-		cms:     make(chan FMMessage, MessagesSize),
 	}
 	// store cookies
 	baseCookies := getBaseCookies()
@@ -61,7 +59,7 @@ func NewClient(token string) *Client {
 		Name:  "token",
 		Value: token,
 	}
-	return c
+	return c, nil
 }
 
 func (c *Client) Send(live int, msg string) error {
@@ -89,12 +87,15 @@ func (c *Client) Send(live int, msg string) error {
 	return nil
 }
 
-func (c *Client) Connect(live int) <-chan FMMessage {
-	if err := c.online(live); err != nil {
-		logger.Error(err)
+// Connect connect to the live and return a connection.
+// This connection can be read or closed.
+func (c *Client) Connect(live int) (Connection, error) {
+	conn, err := c.dial(live)
+	if err != nil {
+		return nil, err
 	}
-	go c.retryConnect(live)
-	return c.cms
+	// TODO use NewConnection is better but cookies reverse by
+	return NewConnection(live, conn), nil
 }
 
 func (c *Client) GetUserInfo() (FMUser, error) {
@@ -114,6 +115,25 @@ func (c *Client) GetUserInfo() (FMUser, error) {
 		return fmUser, errors.New("GetUserInfo() " + string(bs))
 	}
 	return *fmResp.Info.User, nil
+}
+
+func (c *Client) GetLiveInfo(live int) (FMRoom, error) {
+	var fmRoom FMRoom
+	req, _ := c.NewRequest(http.MethodGet, LiveInfoUrl+"/"+strconv.Itoa(live), nil)
+	resp, err := c.c.Do(req)
+	if err != nil {
+		return fmRoom, err
+	}
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+	var fmResp FMResp
+	bs, _ := ioutil.ReadAll(resp.Body)
+	json.Unmarshal(bs, &fmResp)
+	if fmResp.Info == nil || fmResp.Info.Room == nil {
+		return fmRoom, errors.New("GetLiveInfo() " + string(bs))
+	}
+	return *fmResp.Info.Room, nil
 }
 
 func (c *Client) Online(live int) error {
@@ -155,6 +175,18 @@ func (c *Client) online(live int) error {
 		return errors.New(string(bs))
 	}
 	return nil
+}
+
+func (c *Client) dial(live int) (*websocket.Conn, error) {
+	req, _ := c.NewRequest(http.MethodConnect, WebsocketUrl, nil)
+	ws := &websocket.Dialer{}
+	conn, resp, _ := ws.Dial(fmt.Sprintf("%s?room_id=%d", WebsocketUrl, live), req.Header)
+	if resp.StatusCode != 101 {
+		defer conn.Close()
+		bs, _ := ioutil.ReadAll(resp.Body)
+		return nil, errors.New("Dial() " + string(bs))
+	}
+	return conn, nil
 }
 
 func (c *Client) NewRequest(method string, url string, body io.Reader) (*http.Request, error) {
