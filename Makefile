@@ -22,3 +22,7 @@ image: build
 .PHONY: clean
 clean:
 	@rm -rf $(BIN)
+
+.PHONY: env
+env:
+	./bin/gofm --live="$(MISSEVAN_LIVE)" --missevan-token="$(MISSEVAN_TOKEN)" --openai-token="$(OPENAI_TOKEN)"
