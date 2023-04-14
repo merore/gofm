@@ -65,7 +65,7 @@ func (r *Robot) Run() error {
 	if err != nil {
 		return err
 	}
-	logger.Info(fmt.Sprintf("%s connect to %d successfully.", r.name, r.config.Live))
+	logger.Info(fmt.Sprintf("%s connect to %s successfully.", r.name, r.liveName))
 	for {
 		msg, _ := conn.Read()
 		r.dispatcher(msg)
